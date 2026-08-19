@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SismoMitos: La Ciencia Tiembla</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Animaciones personalizadas */
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+
+        .shake-animation { animation: shake 0.5s; animation-iteration-count: 2; }
+        .shake-light { animation: shake 0.3s; animation-iteration-count: 3; }
+        .shake-heavy { animation: shake 0.1s; animation-iteration-count: 15; }
+        .shake-devastating { animation: shake 0.05s; animation-iteration-count: 35; }
+
+        .fade-in { opacity: 1; transition: opacity 0.5s ease-in; }
+        .fade-out { opacity: 0; display: none; transition: opacity 0.5s ease-out; }
+        
+        /* Estilos para las tarjetas de mitos (Flip) */
+        .flip-card {
+            background-color: transparent;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .flip-card.flipped .flip-card-inner { transform: rotateY(180deg); }
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .flip-card-front {
+            background-color: #fee2e2;
+            color: #7f1d1d;
+            border: 2px solid #fca5a5;
+        }
+        .flip-card-back {
+            background-color: #f0fdf4;
+            color: #14532d;
+            transform: rotateY(180deg);
+            border: 2px solid #86efac;
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Estilos Simulador */
+        .soil-layer { position: absolute; top: 0; left: 0; width: 100%; height: 16px; transition: background-color 0.5s; }
+        .depth-superficial { top: 30%; }
+        .depth-intermedio { top: 60%; }
+        .depth-profundo { top: 90%; }
+        .house-container { position: absolute; bottom: 100%; transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.5s; z-index: 20;}
+        .house-roof { width: 0; height: 0; border-left: 14px solid transparent; border-right: 14px solid transparent; border-bottom: 18px solid #b91c1c; transition: all 0.5s; }
+        .house-body { width: 28px; height: 18px; background-color: #f8fafc; border: 2px solid #94a3b8; border-top: none; position: relative; display: flex; justify-content: center; align-items: center;}
+        .house-door { width: 8px; height: 12px; background-color: #8b5cf6; position: absolute; bottom: 0; }
+        .house-ruin { transform: rotate(18deg) translateY(8px) translateX(4px); opacity: 0.9; }
+        .house-ruin .house-roof { border-bottom-color: #7f1d1d; transform: rotate(-25deg) translateX(-8px) translateY(2px); }
+        
+        /* Nuevos Estilos: Edificios y Física de Colapso */
+        .building-container { position: absolute; bottom: 100%; transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.5s; z-index: 20; transform-origin: bottom center; }
+        .building-body { width: 34px; height: 65px; background-color: #cbd5e1; border: 2px solid #475569; border-bottom: none; display: flex; flex-direction: column; justify-content: space-evenly; align-items: center; padding: 2px; transition: all 0.4s ease; }
+        .window-row { display: flex; gap: 4px; width: 100%; justify-content: center; }
+        .window { width: 8px; height: 10px; background-color: #38bdf8; transition: background-color 0.3s; }
+        
+        /* Estado de Ruina de Edificios (Pancaking / Aplastamiento) */
+        .building-ruin .building-body { height: 25px; transform: skewX(15deg); background-color: #94a3b8; border-color: #334155; }
+        .building-ruin .window { height: 2px; background-color: #0f172a; }
+        
+        /* Animación de Balanceo (Resonancia) */
+        @keyframes sway-structure {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(12deg); }
+            50% { transform: rotate(-8deg); }
+            75% { transform: rotate(15deg); }
+            100% { transform: rotate(-12deg); }
+        }
+        .quake-sway { animation: sway-structure 0.5s ease-in-out infinite alternate; }
+
+        .tree-container { position: absolute; bottom: 100%; transition: all 0.5s ease; z-index: 15; display: flex; flex-direction: column; align-items: center;}
+        .tree-leaves { width: 20px; height: 20px; background-color: #15803d; border-radius: 50%; z-index: 2;}
+        .tree-trunk { width: 6px; height: 14px; background-color: #78350f; margin-top: -4px;}
+        .tree-ruin { transform: rotate(-75deg) translateY(12px) translateX(-5px); }
+        .magma-glow { box-shadow: 0 0 30px 15px #ea580c; }
+        .crust-pattern { background-image: radial-gradient(#444 1px, transparent 1px); background-size: 10px 10px; }
+        
+        /* Typing animation para el chat */
+        .typing-dot { animation: typing 1.4s infinite ease-in-out both; }
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans leading-relaxed">
+
+    <!-- Navegación Superior -->
+    <nav class="bg-indigo-600 text-white p-4 shadow-md sticky top-0 z-50">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold flex items-center">
+                <i class="fa-solid fa-earth-americas mr-2"></i> SismoMitos
+            </h1>
+            <div class="flex space-x-2 sm:space-x-4 text-sm sm:text-base overflow-x-auto no-scrollbar">
+                <button onclick="showSection('intro')" class="hover:text-indigo-200 font-semibold px-2 whitespace-nowrap">Inicio</button>
+                <button onclick="showSection('simulador')" class="hover:text-indigo-200 font-semibold px-2 whitespace-nowrap">Simulador</button>
+                <button onclick="showSection('mitos')" class="hover:text-indigo-200 font-semibold px-2 whitespace-nowrap">Mitos</button>
+                <button onclick="showSection('factchecker')" class="hover:text-indigo-200 font-semibold px-2 whitespace-nowrap">Chat</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto p-4 sm:p-8 max-w-6xl">
+
+        <!-- SECCIÓN 1: INTRODUCCIÓN -->
+        <section id="intro" class="fade-in block space-y-8">
+            <div class="text-center bg-white p-8 rounded-xl shadow-lg border-t-4 border-indigo-500 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-yellow-400 via-red-500 to-indigo-500"></div>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-indigo-700 mb-4">La Tierra está viva, y nosotros también.</h2>
+                <p class="text-lg text-gray-700 mb-4 font-medium bg-indigo-50 p-4 rounded-lg border border-indigo-100 shadow-sm">
+                    Sabemos que hace poco pasamos por un sismo fuerte en Colombia y es <strong>súper normal sentir miedo, ansiedad o que te tiemblen las piernas.</strong> Vivimos en un país cruzado por montañas increíbles (los Andes), lo que significa que debajo de nuestros pies, el planeta está lleno de energía. El miedo es válido, pero no tiene por qué dominarnos.
+                </p>
+                <p class="text-lg text-gray-600 mb-4">
+                    Pero en momentos de susto, WhatsApp, TikTok y las redes se llenan de rumores, audios de "expertos" falsos y cadenas que mezclan verdades con mentiras para causarnos más pánico. 
+                </p>
+                <p class="text-lg text-gray-600 mb-8">
+                    Aquí te vamos a dar tu mejor armadura contra el miedo: <strong>el conocimiento científico.</strong> Vamos a entender cómo funciona nuestro país por debajo, a destruir los mitos que te asustan en redes, y a descubrir por qué estar preparados nos devuelve el control.
+                </p>
+                <button onclick="showSection('simulador')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-full transition transform hover:scale-105 shadow-lg text-lg">
+                    ¡Ponte el traje de científico! <i class="fa-solid fa-microscope ml-2"></i>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="bg-blue-100 p-6 rounded-xl text-center shadow-sm border border-blue-200 transform transition hover:-translate-y-1">
+                    <i class="fa-solid fa-shield-halved text-4xl text-blue-600 mb-3 drop-shadow-sm"></i>
+                    <h3 class="font-bold text-blue-800 text-lg">Tu Seguridad (Certezas)</h3>
+                    <p class="text-sm text-blue-700 mt-2">Sabemos exactamente por qué tiembla, cómo hacer edificios que bailen con el sismo sin caerse, y que tener un plan familiar salva vidas. ¡Tú tienes el control!</p>
+                </div>
+                <div class="bg-yellow-100 p-6 rounded-xl text-center shadow-sm border border-yellow-200 transform transition hover:-translate-y-1">
+                    <i class="fa-solid fa-chart-pie text-4xl text-yellow-600 mb-3 drop-shadow-sm"></i>
+                    <h3 class="font-bold text-yellow-800 text-lg">Las Probabilidades</h3>
+                    <p class="text-sm text-yellow-700 mt-2">Los geólogos estudian nuestra historia para saber qué zonas tienen más "probabilidad" de moverse fuerte, lo que nos permite prepararnos mejor cada año.</p>
+                </div>
+                <div class="bg-red-100 p-6 rounded-xl text-center shadow-sm border border-red-200 transform transition hover:-translate-y-1">
+                    <i class="fa-solid fa-ban text-4xl text-red-600 mb-3 drop-shadow-sm"></i>
+                    <h3 class="font-bold text-red-800 text-lg">Mentiras de Internet</h3>
+                    <p class="text-sm text-red-700 mt-2">Nadie, absolutamente nadie, puede predecir el <strong>día, lugar y hora exacta</strong> de un sismo. Si lees una fecha en un mensaje reenviado, bórralo, es mentira.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 2: SIMULADOR DE FRICCIÓN -->
+        <section id="simulador" class="fade-out hidden space-y-6">
+            <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg border-t-4 border-blue-500">
+                <h2 class="text-2xl font-bold text-blue-700 mb-4 flex items-center">
+                    <i class="fa-solid fa-layer-group mr-3"></i> Laboratorio de Placas Tectónicas
+                </h2>
+                <p class="mb-4 text-gray-700">
+                    La corteza de la Tierra está rota en pedazos gigantes llamados <strong>Placas Tectónicas</strong>. Juega con el simulador abajo: elige cómo chocan las placas, cambia el tipo de suelo y acumula tensión para ver la física en acción.
+                </p>
+                
+                <div class="flex flex-wrap gap-2 mb-6 justify-center">
+                    <button id="btn-conv" onclick="setSimMode('convergente')" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold shadow transition hover:bg-blue-700 border-2 border-blue-800">💥 Convergente (Choque)</button>
+                    <button id="btn-div" onclick="setSimMode('divergente')" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-bold shadow transition hover:bg-gray-300 border-2 border-transparent">⬅️➡️ Divergente (Separación)</button>
+                    <button id="btn-trans" onclick="setSimMode('transformante')" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-bold shadow transition hover:bg-gray-300 border-2 border-transparent">↕️ Transformante (Roce)</button>
+                </div>
+
+                <div class="bg-gray-50 p-4 rounded-xl border-2 border-gray-200 shadow-inner">
+                    <h3 id="sim-title" class="text-lg font-bold text-center mb-2 text-blue-800">Límite Convergente (La realidad de Colombia)</h3>
+                    <p id="sim-desc" class="text-sm text-center text-gray-600 mb-6 h-10">La Placa de Nazca (océano Pacífico) choca contra la Placa Sudamericana (donde estamos nosotros). Nazca se hunde por debajo, atorándose por la fricción. Cuando se destraba de golpe, ¡tenemos un sismo!</p>
+                    
+                    <!-- Escenario Visual -->
+                    <div id="sim-container" class="relative w-full h-64 bg-sky-200 rounded-lg flex items-end justify-center overflow-hidden mb-6 border-4 border-stone-800 shadow-md">
+                        <div class="absolute inset-0 flex justify-between p-4 opacity-50 pointer-events-none">
+                            <i class="fa-solid fa-cloud text-white text-4xl mt-2"></i>
+                            <i class="fa-solid fa-cloud text-white text-3xl mt-8"></i>
+                            <i class="fa-solid fa-cloud text-white text-5xl"></i>
+                        </div>
+                        <div class="absolute bottom-0 w-full h-16 bg-gradient-to-t from-orange-600 to-red-500 z-0">
+                            <div class="w-full h-full opacity-30" style="background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.1) 10px, rgba(0,0,0,0.1) 20px);"></div>
+                        </div>
+                        
+                        <div id="magma-emergente" class="absolute bottom-16 left-1/2 transform -translate-x-1/2 w-0 h-48 bg-gradient-to-t from-orange-500 to-yellow-400 opacity-0 transition-all duration-700 z-0 rounded-t-full magma-glow"></div>
+                        <div id="placa-izq" class="absolute bottom-16 left-0 w-[51%] h-24 bg-stone-500 crust-pattern border-t-[0px] transition-transform duration-500 ease-out z-20 flex justify-center shadow-[2px_0_10px_rgba(0,0,0,0.3)] relative">
+                            <span id="label-nazca" class="absolute bottom-2 left-2 text-[10px] font-bold text-stone-300 opacity-70">Placa Oceánica (Nazca)</span>
+                            <div id="suelo-izq" class="soil-layer bg-green-600 border-b-2 border-stone-600"></div>
+                            <div class="tree-container left-[5%]"><div class="tree-leaves"></div><div class="tree-trunk"></div></div>
+                            <!-- Casas y Edificios Mixtos -->
+                            <div class="building-container left-[18%]"><div class="building-body"><div class="window-row"><div class="window"></div><div class="window"></div></div><div class="window-row"><div class="window"></div><div class="window"></div></div><div class="window-row"><div class="window"></div><div class="window"></div></div><div class="window-row"><div class="window" style="background-color:#f59e0b"></div><div class="window"></div></div></div></div>
+                            <div class="house-container left-[40%]"><div class="house-roof"></div><div class="house-body"><div class="house-door"></div></div></div>
+                            <div class="tree-container left-[58%]"><div class="tree-leaves"></div><div class="tree-trunk"></div></div>
+                            <div class="building-container left-[75%]"><div class="building-body" style="height: 50px; background-color: #e2e8f0;"><div class="window-row"><div class="window"></div><div class="window"></div></div><div class="window-row"><div class="window"></div><div class="window"></div></div><div class="window-row"><div class="window"></div><div class="window"></div></div></div></div>
+                        </div>
+                        <div id="placa-der" class="absolute bottom-16 right-0 w-[51%] h-24 bg-stone-600 crust-pattern border-t-[0px] transition-transform duration-500 ease-out z-10 flex justify-center shadow-[-2px_0_10px_rgba(0,0,0,0.3)] relative">
+                            <span id="label-suda" class="absolute bottom-2 right-2 text-[10px] font-bold text-stone-300 opacity-70">Placa Continental (Sudamericana)</span>
+                            <div id="suelo-der" class="soil-layer bg-emerald-600 border-b-2 border-stone-700"></div>
+                            <div class="house-container right-[15%]"><div class="house-roof" style="border-bottom-color: #d97706;"></div><div class="house-body"><div class="house-door" style="background-color: #16a34a;"></div></div></div>
+                            <div class="building-container right-[35%]"><div class="building-body" style="background-color: #f1f5f9;"><div class="window-row"><div class="window"></div><div class="window"></div></div><div class="window-row"><div class="window"></div><div class="window"></div></div><div class="window-row"><div class="window"></div><div class="window"></div></div><div class="window-row"><div class="window"></div><div class="window"></div></div></div></div>
+                            <div class="tree-container right-[60%]"><div class="tree-leaves"></div><div class="tree-trunk"></div></div>
+                            <div class="house-container right-[80%]"><div class="house-roof" style="border-bottom-color: #0369a1;"></div><div class="house-body"><div class="house-door" style="background-color: #be123c;"></div></div></div>
+                        </div>
+                        
+                        <div id="ondas-sismicas" class="absolute left-1/2 depth-superficial transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center opacity-0 z-30 pointer-events-none transition-all duration-700">
+                            <div class="w-32 h-32 border-8 border-yellow-400 rounded-full animate-ping"></div>
+                            <div class="absolute w-16 h-16 border-4 border-red-500 rounded-full animate-ping" style="animation-delay: 0.2s;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Controles -->
+                    <div class="space-y-4 max-w-xl mx-auto bg-white p-5 rounded-xl shadow-lg border border-gray-200 relative overflow-hidden">
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2 bg-blue-50 p-3 rounded-lg border border-blue-100">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1"><i class="fa-solid fa-layer-group text-amber-700 mr-1"></i> Tipo de Suelo:</label>
+                                <select id="sim-suelo" onchange="actualizarVisualSuelo()" class="w-full text-sm p-2 border border-gray-300 rounded-md bg-white shadow-sm focus:ring-blue-500 focus:border-blue-500 cursor-pointer">
+                                    <option value="roca">Roca Sólida (Atenúa el daño)</option>
+                                    <option value="mixto" selected>Suelo Mixto (Normal)</option>
+                                    <option value="blando">Suelo Blando/Lodo (¡Aumenta el daño!)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1"><i class="fa-solid fa-arrow-down-short-wide text-indigo-700 mr-1"></i> Profundidad (Hipocentro):</label>
+                                <select id="sim-profundidad" onchange="actualizarVisualProfundidad()" class="w-full text-sm p-2 border border-gray-300 rounded-md bg-white shadow-sm focus:ring-blue-500 focus:border-blue-500 cursor-pointer">
+                                    <option value="superficial" selected>Superficial (< 30km) - ¡Más peligro!</option>
+                                    <option value="intermedio">Intermedia (30 - 70km)</option>
+                                    <option value="profundo">Profunda (> 70km) - Menos peligro</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="mag-badge" class="absolute top-0 right-0 bg-gray-600 text-white font-mono px-4 py-2 rounded-bl-xl font-bold text-lg shadow-md z-10 flex items-center transition-colors duration-300">
+                            <i class="fa-solid fa-wave-square mr-2"></i> Mag: <span id="mag-display" class="ml-2 w-10 text-right">0.0</span>
+                        </div>
+                        
+                        <div class="pr-24 sm:pr-32 pt-2">
+                            <label class="block text-sm font-bold text-gray-700 mb-2 flex justify-between">
+                                <span>Tensión Acumulada (Empuja aquí):</span>
+                                <span id="energia-val" class="text-orange-600 font-mono text-lg">0%</span>
+                            </label>
+                            <input type="range" id="slider-energia" min="0" max="100" value="0" class="w-full h-6 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-orange-600 shadow-inner">
+                        </div>
+                        
+                        <div class="flex flex-col sm:flex-row gap-2 justify-center mt-4">
+                            <button id="btn-manual" onclick="triggerManualQuake()" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-lg transition shadow-md flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
+                                <i class="fa-solid fa-house-crack mr-2 text-xl"></i> Romper Falla (Sismo)
+                            </button>
+                            <button id="btn-auto" onclick="toggleAutoMode()" class="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg transition shadow-md flex items-center justify-center">
+                                <i class="fa-solid fa-dice mr-2 text-xl"></i> Simular Vida Real (Sorpresa)
+                            </button>
+                        </div>
+                        
+                        <div class="text-center mt-3 h-10 flex items-center justify-center bg-gray-100 rounded-lg border border-gray-200 px-2">
+                            <p id="sim-mensaje" class="text-xs sm:text-sm font-semibold text-gray-500">Mueve el deslizador naranja para empezar a acumular estrés en las rocas...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-right">
+                <button onclick="showSection('mitos')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-full transition shadow-md hover:scale-105">
+                    Siguiente: Modo Cazador de Mitos <i class="fa-solid fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 3: CAZADORES DE MITOS -->
+        <section id="mitos" class="fade-out hidden space-y-6">
+            <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg border-t-4 border-red-500">
+                <h2 class="text-2xl font-bold text-red-700 mb-4 flex items-center">
+                    <i class="fa-solid fa-ghost mr-3"></i> Cazadores de Mitos de WhatsApp
+                </h2>
+                <p class="mb-6 text-gray-700">
+                    A veces el miedo nos hace creer en cadenas de mensajes locos. Toca o haz clic en cada tarjeta roja para descubrir qué dice la ciencia real frente a los rumores de tu tía. ¡Prepárate para destruir mitos!
+                </p>
+
+                <!-- Grid de Tarjetas -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    
+                    <!-- Mito 1: Clima -->
+                    <div class="flip-card h-auto min-h-[24rem]" onclick="this.classList.toggle('flipped')">
+                        <div class="flip-card-inner rounded-xl">
+                            <div class="flip-card-front">
+                                <i class="fa-solid fa-sun text-5xl mb-4"></i>
+                                <h3 class="font-bold text-xl mb-2 text-center">"Hizo muchísimo calor hoy, seguro va a temblar durísimo."</h3>
+                                <p class="text-sm italic text-red-700 font-bold mt-4 animate-pulse">(Toca para desmentir)</p>
+                            </div>
+                            <div class="flip-card-back !p-3 relative group">
+                                <div class="flex items-center w-full mb-1">
+                                    <i class="fa-solid fa-xmark-circle text-red-600 mr-2 text-2xl"></i>
+                                    <h3 class="font-bold text-sm text-green-900 text-left border-b-2 border-green-400 flex-grow pb-1 uppercase">¡Mito Cazado!</h3>
+                                </div>
+                                <div class="relative w-full cursor-zoom-in" onclick="event.stopPropagation(); openImageModal(this.querySelector('img'));">
+                                    <img src="mito_clima.jpeg" alt="El clima no afecta" class="w-full h-32 object-cover rounded mb-2 border-2 border-green-300 group-hover:shadow-md transition-all z-10 relative" 
+                                    data-title="¡Mito Cazado!" 
+                                    data-desc="Las rocas a 30 km de profundidad no sudan. El clima ocurre arriba en la atmósfera, y los sismos muy por debajo de la superficie. A las placas tectónicas les importa un rábano si hoy necesitas paraguas. ¡El 'clima sísmico' es un invento total!"
+                                    onerror="this.style.display='none'" title="Clic para ampliar y leer">
+                                    <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded flex items-center justify-center z-20">
+                                        <i class="fa-solid fa-magnifying-glass-plus text-white opacity-0 group-hover:opacity-100 text-3xl drop-shadow-md"></i>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-left leading-relaxed text-gray-800">Las rocas a 30 km de profundidad no sudan. El clima ocurre arriba en la atmósfera, y los sismos muy por debajo de la superficie. A las placas tectónicas les importa un rábano si hoy necesitas paraguas. ¡El "clima sísmico" es un invento total!</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mito 2: Predicción -->
+                    <div class="flip-card h-auto min-h-[24rem]" onclick="this.classList.toggle('flipped')">
+                        <div class="flip-card-inner rounded-xl">
+                            <div class="flip-card-front">
+                                <i class="fa-solid fa-mobile-screen-button text-5xl mb-4"></i>
+                                <h3 class="font-bold text-xl mb-2 text-center">"Me llegó un WhatsApp: mañana a las 3 PM hay mega sismo."</h3>
+                                <p class="text-sm italic text-red-700 font-bold mt-4 animate-pulse">(Toca para desmentir)</p>
+                            </div>
+                            <div class="flip-card-back !p-3 relative group">
+                                <div class="flex items-center w-full mb-1">
+                                    <i class="fa-solid fa-xmark-circle text-red-600 mr-2 text-2xl"></i>
+                                    <h3 class="font-bold text-sm text-green-900 text-left border-b-2 border-green-400 flex-grow pb-1 uppercase">¡Falso! Imposible</h3>
+                                </div>
+                                <div class="relative w-full cursor-zoom-in" onclick="event.stopPropagation(); openImageModal(this.querySelector('img'));">
+                                    <img src="mito_prediccion.jpeg" alt="Predicción imposible" class="w-full h-32 object-cover rounded mb-2 border-2 border-green-300 group-hover:shadow-md transition-all z-10 relative" 
+                                    data-title="¡Falso! Imposible" 
+                                    data-desc="Ni la IA más potente puede adivinar el futuro de las rocas. Si ves un mensaje con 'fecha y hora', es 100% fake news. Las apps de alerta del celular suenan porque el sismo ya empezó a kilómetros de distancia, viajan más rápido que las ondas, ¡pero no son adivinas!"
+                                    onerror="this.style.display='none'" title="Clic para ampliar y leer">
+                                    <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded flex items-center justify-center z-20">
+                                        <i class="fa-solid fa-magnifying-glass-plus text-white opacity-0 group-hover:opacity-100 text-3xl drop-shadow-md"></i>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-left leading-relaxed text-gray-800">Ni la IA más potente puede adivinar el futuro de las rocas. Si ves un mensaje con "fecha y hora", es 100% <em>fake news</em>. Las apps de alerta del celular suenan porque el sismo <strong>ya empezó</strong> a kilómetros de distancia, viajan más rápido que las ondas, ¡pero no son adivinas!</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mito 3: Perros -->
+                    <div class="flip-card h-auto min-h-[24rem]" onclick="this.classList.toggle('flipped')">
+                        <div class="flip-card-inner rounded-xl">
+                            <div class="flip-card-front">
+                                <i class="fa-solid fa-dog text-5xl mb-4"></i>
+                                <h3 class="font-bold text-xl mb-2 text-center">"Mi perro está súper raro, ellos presienten los temblores horas antes."</h3>
+                                <p class="text-sm italic text-red-700 font-bold mt-4 animate-pulse">(Toca para desmentir)</p>
+                            </div>
+                            <div class="flip-card-back !p-3 relative group">
+                                <div class="flex items-center w-full mb-1">
+                                    <i class="fa-solid fa-exclamation-circle text-yellow-600 mr-2 text-2xl"></i>
+                                    <h3 class="font-bold text-sm text-green-900 text-left border-b-2 border-green-400 flex-grow pb-1 uppercase">¡Verdad a medias!</h3>
+                                </div>
+                                <div class="relative w-full cursor-zoom-in" onclick="event.stopPropagation(); openImageModal(this.querySelector('img'));">
+                                    <img src="mito_perro.jpeg" alt="Perros y ondas" class="w-full h-32 object-cover rounded mb-2 border-2 border-green-300 group-hover:shadow-md transition-all z-10 relative" 
+                                    data-title="¡Verdad a medias!" 
+                                    data-desc="Firulais no es vidente. Lo que pasa es que los sismos sueltan 'Ondas P' (super rápidas y sutiles) seguidas de 'Ondas S' (lentas y destructivas). Las patitas de tu perro sienten la onda P unos segundos antes de que tú sientas la sacudida fuerte. Es física, no telepatía."
+                                    onerror="this.style.display='none'" title="Clic para ampliar y leer">
+                                    <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded flex items-center justify-center z-20">
+                                        <i class="fa-solid fa-magnifying-glass-plus text-white opacity-0 group-hover:opacity-100 text-3xl drop-shadow-md"></i>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-left leading-relaxed text-gray-800">Firulais no es vidente. Lo que pasa es que los sismos sueltan "Ondas P" (super rápidas y sutiles) seguidas de "Ondas S" (lentas y destructivas). Las patitas de tu perro sienten la onda P unos segundos antes de que tú sientas la sacudida fuerte. Es física, no telepatía.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mito 4: Explosiones -->
+                    <div class="flip-card h-auto min-h-[24rem]" onclick="this.classList.toggle('flipped')">
+                        <div class="flip-card-inner rounded-xl">
+                            <div class="flip-card-front">
+                                <i class="fa-solid fa-bomb text-5xl mb-4"></i>
+                                <h3 class="font-bold text-xl mb-2 text-center">"Seguro fue una prueba nuclear subterránea secreta."</h3>
+                                <p class="text-sm italic text-red-700 font-bold mt-4 animate-pulse">(Toca para desmentir)</p>
+                            </div>
+                            <div class="flip-card-back !p-3 relative group">
+                                <div class="flex items-center w-full mb-1">
+                                    <i class="fa-solid fa-xmark-circle text-red-600 mr-2 text-2xl"></i>
+                                    <h3 class="font-bold text-sm text-green-900 text-left border-b-2 border-green-400 flex-grow pb-1 uppercase">¡Mito Cazado!</h3>
+                                </div>
+                                <div class="relative w-full cursor-zoom-in" onclick="event.stopPropagation(); openImageModal(this.querySelector('img'));">
+                                    <img src="mito_explosiones.jpeg" alt="Seismograma" class="w-full h-32 object-cover rounded mb-2 border-2 border-green-300 group-hover:shadow-md transition-all z-10 relative" 
+                                    data-title="¡Mito Cazado!" 
+                                    data-desc="Los sismógrafos son como detectores de mentiras. La 'firma' (el dibujo) que deja una explosión humana es un pico corto y feo. La de un sismo de verdad es como una coreografía larga y compleja. Los científicos se dan cuenta del engaño de inmediato."
+                                    onerror="this.style.display='none'" title="Clic para ampliar y leer">
+                                    <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded flex items-center justify-center z-20">
+                                        <i class="fa-solid fa-magnifying-glass-plus text-white opacity-0 group-hover:opacity-100 text-3xl drop-shadow-md"></i>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-left leading-relaxed text-gray-800">Los sismógrafos son como detectores de mentiras. La "firma" (el dibujo) que deja una explosión humana es un pico corto y feo. La de un sismo de verdad es como una coreografía larga y compleja. Los científicos se dan cuenta del engaño de inmediato.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mito 5: Calendario -->
+                    <div class="flip-card h-auto min-h-[24rem]" onclick="this.classList.toggle('flipped')">
+                        <div class="flip-card-inner rounded-xl">
+                            <div class="flip-card-front">
+                                <i class="fa-solid fa-calendar-days text-5xl mb-4"></i>
+                                <h3 class="font-bold text-xl mb-2 text-center">"Es que este es el mes de los temblores en Colombia."</h3>
+                                <p class="text-sm italic text-red-700 font-bold mt-4 animate-pulse">(Toca para desmentir)</p>
+                            </div>
+                            <div class="flip-card-back !p-3 relative group">
+                                <div class="flex items-center w-full mb-1">
+                                    <i class="fa-solid fa-xmark-circle text-red-600 mr-2 text-2xl"></i>
+                                    <h3 class="font-bold text-sm text-green-900 text-left border-b-2 border-green-400 flex-grow pb-1 uppercase">Sin calendario</h3>
+                                </div>
+                                <div class="relative w-full cursor-zoom-in" onclick="event.stopPropagation(); openImageModal(this.querySelector('img'));">
+                                    <img src="mito_calendario.jpeg" alt="Mito del mes" class="w-full h-32 object-cover rounded mb-2 border-2 border-green-300 group-hover:shadow-md transition-all z-10 relative" 
+                                    data-title="Rocas sin calendario" 
+                                    data-desc="A las fallas tectónicas les da igual si es Halloween, Navidad o jueves. Creer esto se llama 'sesgo de confirmación': tu cerebro solo recuerda cuando tiembla en ese mes famoso, y olvida todos los sismos de los demás meses. ¡Tiembla todo el año por igual!"
+                                    onerror="this.style.display='none'" title="Clic para ampliar y leer">
+                                    <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded flex items-center justify-center z-20">
+                                        <i class="fa-solid fa-magnifying-glass-plus text-white opacity-0 group-hover:opacity-100 text-3xl drop-shadow-md"></i>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-left leading-relaxed text-gray-800">A las fallas tectónicas les da igual si es Halloween, Navidad o jueves. Creer esto se llama "sesgo de confirmación": tu cerebro solo recuerda cuando tiembla en ese mes famoso, y olvida todos los sismos de los demás meses. ¡Tiembla todo el año por igual!</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mito 6: Escala engañosa -->
+                    <div class="flip-card h-auto min-h-[24rem]" onclick="this.classList.toggle('flipped')">
+                        <div class="flip-card-inner rounded-xl">
+                            <div class="flip-card-front">
+                                <i class="fa-solid fa-chart-line text-5xl mb-4"></i>
+                                <h3 class="font-bold text-xl mb-2 text-center">"Menos mal tembló despacito hoy, así se libera energía para evitar el grande."</h3>
+                                <p class="text-sm italic text-red-700 font-bold mt-4 animate-pulse">(Toca para desmentir)</p>
+                            </div>
+                            <div class="flip-card-back !p-3 relative group">
+                                <div class="flex items-center w-full mb-1">
+                                    <i class="fa-solid fa-xmark-circle text-red-600 mr-2 text-2xl"></i>
+                                    <h3 class="font-bold text-sm text-green-900 text-left border-b-2 border-green-400 flex-grow pb-1 uppercase">Mates Mandan</h3>
+                                </div>
+                                <div class="relative w-full cursor-zoom-in" onclick="event.stopPropagation(); openImageModal(this.querySelector('img'));">
+                                    <img src="mito_escala.jpeg" alt="Escala logarítmica" class="w-full h-32 object-cover rounded mb-2 border-2 border-green-300 group-hover:shadow-md transition-all z-10 relative" 
+                                    data-title="Matemáticas Mandan" 
+                                    data-desc="Suena lógico, pero ¡es falso! La escala es logarítmica (como una bola de nieve ninja). Necesitas más de 1,000 sismitos de magnitud 4 para igualar la energía de UN solo sismo de magnitud 6. Esos temblorcitos ni le hacen cosquillas a la tensión real."
+                                    onerror="this.style.display='none'" title="Clic para ampliar y leer">
+                                    <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded flex items-center justify-center z-20">
+                                        <i class="fa-solid fa-magnifying-glass-plus text-white opacity-0 group-hover:opacity-100 text-3xl drop-shadow-md"></i>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-left leading-relaxed text-gray-800">Suena lógico, pero ¡es falso! La escala es logarítmica (como una bola de nieve ninja). Necesitas más de <strong>1,000 sismitos de magnitud 4</strong> para igualar la energía de <strong>UN solo sismo de magnitud 6</strong>. Esos temblorcitos ni le hacen cosquillas a la tensión real.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mito 7: Grietas -->
+                    <div class="flip-card h-auto min-h-[24rem]" onclick="this.classList.toggle('flipped')">
+                        <div class="flip-card-inner rounded-xl">
+                            <div class="flip-card-front">
+                                <i class="fa-solid fa-arrows-down-to-line text-5xl mb-4"></i>
+                                <h3 class="font-bold text-xl mb-2 text-center">"¡Corran! La Tierra se va a abrir y se va a tragar la escuela."</h3>
+                                <p class="text-sm italic text-red-700 font-bold mt-4 animate-pulse">(Toca para desmentir)</p>
+                            </div>
+                            <div class="flip-card-back !p-3 relative group">
+                                <div class="flex items-center w-full mb-1">
+                                    <i class="fa-solid fa-xmark-circle text-red-600 mr-2 text-2xl"></i>
+                                    <h3 class="font-bold text-sm text-green-900 text-left border-b-2 border-green-400 flex-grow pb-1 uppercase">¡Apaga Hollywood!</h3>
+                                </div>
+                                <div class="relative w-full cursor-zoom-in" onclick="event.stopPropagation(); openImageModal(this.querySelector('img'));">
+                                    <img src="mito_grieta.jpeg" alt="Fallas de rocas" class="w-full h-32 object-cover rounded mb-2 border-2 border-green-300 group-hover:shadow-md transition-all z-10 relative" 
+                                    data-title="¡Apaga Hollywood!" 
+                                    data-desc="Las fallas tectónicas no son abismos negros y huecos. Son bloques inmensos de roca empujándose brutalmente uno contra otro. Si se separaran para hacer un hueco, ¡no habría fricción y no habría sismo! El suelo se agrieta un poco superficialmente, pero no te traga."
+                                    onerror="this.style.display='none'" title="Clic para ampliar y leer">
+                                    <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded flex items-center justify-center z-20">
+                                        <i class="fa-solid fa-magnifying-glass-plus text-white opacity-0 group-hover:opacity-100 text-3xl drop-shadow-md"></i>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-left leading-relaxed text-gray-800">Las fallas tectónicas no son abismos negros y huecos. Son bloques inmensos de roca empujándose brutalmente uno contra otro. Si se separaran para hacer un hueco, ¡no habría fricción y no habría sismo! El suelo se agrieta un poco superficialmente, pero no te traga.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mito 8: Triángulo de la Vida -->
+                    <div class="flip-card h-auto min-h-[24rem]" onclick="this.classList.toggle('flipped')">
+                        <div class="flip-card-inner rounded-xl">
+                            <div class="flip-card-front">
+                                <i class="fa-solid fa-triangle-exclamation text-5xl mb-4"></i>
+                                <h3 class="font-bold text-xl mb-2 text-center">"Si tiembla, busca hacer el 'Triángulo de la Vida' junto a la nevera."</h3>
+                                <p class="text-sm italic text-red-700 font-bold mt-4 animate-pulse">(Toca para desmentir)</p>
+                            </div>
+                            <div class="flip-card-back !p-3 relative group">
+                                <div class="flex items-center w-full mb-1">
+                                    <i class="fa-solid fa-skull-crossbones text-red-600 mr-2 text-2xl"></i>
+                                    <h3 class="font-bold text-sm text-green-900 text-left border-b-2 border-green-400 flex-grow pb-1 uppercase">¡Mito Peligroso!</h3>
+                                </div>
+                                <div class="relative w-full cursor-zoom-in" onclick="event.stopPropagation(); openImageModal(this.querySelector('img'));">
+                                    <img src="mito_triangulo.jpeg" alt="Protegerse correctamente" class="w-full h-32 object-cover rounded mb-2 border-2 border-green-300 group-hover:shadow-md transition-all z-10 relative" 
+                                    data-title="¡Mito Peligroso!" 
+                                    data-desc="Esa es una cadena de correos del año 2005 y puede matarte. Asume que el techo no te va a aplastar como sándwich entero, sino que la mayoría de heridas son porque te caen cosas encima (televisores, muebles). La regla dorada global es: ¡Agáchate, Cúbrete (bajo una mesa) y Sujétate!"
+                                    onerror="this.style.display='none'" title="Clic para ampliar y leer">
+                                    <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded flex items-center justify-center z-20">
+                                        <i class="fa-solid fa-magnifying-glass-plus text-white opacity-0 group-hover:opacity-100 text-3xl drop-shadow-md"></i>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-left leading-relaxed text-gray-800">Esa es una cadena de correos del año 2005 y puede matarte. Asume que el techo no te va a aplastar como sándwich entero, sino que la mayoría de heridas son porque te caen cosas encima (televisores, muebles). La regla dorada global es: <strong>¡Agáchate, Cúbrete (bajo una mesa) y Sujétate!</strong></p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="text-right">
+                <button onclick="showSection('factchecker')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-full transition shadow-md hover:scale-105">
+                    Siguiente: Reto Final en WhatsApp <i class="fa-solid fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 4: MODO FACT-CHECKER (Dinámico) -->
+        <section id="factchecker" class="fade-out hidden space-y-6 h-full flex flex-col">
+            <div class="bg-white p-4 sm:p-6 rounded-xl shadow-lg border-t-4 border-green-500 flex-grow flex flex-col max-w-3xl mx-auto w-full">
+                <h2 class="text-xl sm:text-2xl font-bold text-green-700 mb-2 flex items-center">
+                    <i class="fa-brands fa-whatsapp mr-3"></i> Rescate en el Chat Familiar
+                </h2>
+                <p class="text-sm text-gray-600 mb-4">
+                    Alerta máxima: Tu tía Maruja está asustada por el temblor reciente y está enviando mensajes de pánico mezclados con medias verdades. Supera los 3 niveles de mensajes eligiendo la respuesta científica correcta para calmarla.
+                </p>
+
+                <!-- Interfaz de Chat -->
+                <div class="bg-gray-200 flex-grow rounded-lg overflow-hidden flex flex-col relative h-[500px] border-2 border-gray-300 shadow-inner">
+                    <!-- Cabecera del chat -->
+                    <div class="bg-[#075e54] text-white p-3 flex items-center shadow-md z-10">
+                        <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center mr-3 text-gray-600 overflow-hidden border border-white">
+                            <img src="https://api.dicebear.com/7.x/bottts/svg?seed=family" alt="Group" class="w-full h-full">
+                        </div>
+                        <div>
+                            <p class="font-bold leading-tight text-lg">Familia Dinamita 💥🏡</p>
+                            <p id="typing-status" class="text-xs text-green-200 opacity-0 transition-opacity">Tía Maruja escribiendo...</p>
+                        </div>
+                    </div>
+
+                    <!-- Mensajes Dinámicos -->
+                    <div id="chat-messages" class="p-4 flex-grow overflow-y-auto no-scrollbar space-y-4 bg-[#e5ddd5]" style="background-image: url('https://www.transparenttextures.com/patterns/cubes.png');">
+                        <!-- El contenido se inyecta por JS -->
+                    </div>
+
+                    <!-- Opciones de Respuesta Dinámicas -->
+                    <div id="chat-options-container" class="bg-gray-100 p-3 border-t border-gray-300">
+                        <p class="text-xs text-gray-600 mb-2 font-bold uppercase text-center bg-gray-200 py-1 rounded-full"><i class="fa-solid fa-keyboard mr-2"></i> Elige tu respuesta para enviar:</p>
+                        <div id="chat-options" class="space-y-2">
+                             <!-- Las opciones se inyectan por JS -->
+                        </div>
+                        <!-- Botón para avanzar al siguiente escenario oculto por defecto -->
+                        <button id="btn-next-scenario" onclick="nextChatScenario()" class="hidden w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition shadow-md flex items-center justify-center mt-2">
+                            Siguiente mensaje <i class="fa-solid fa-arrow-right ml-2"></i>
+                        </button>
+
+                        <!-- Mensaje de éxito al completar todos los escenarios -->
+                        <div id="success-message" class="hidden absolute inset-0 bg-white/95 z-20 flex flex-col items-center justify-center p-6 text-center">
+                            <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                                <i class="fa-solid fa-shield-halved text-5xl text-green-600"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold text-green-800 mb-2">¡Misión Cumplida!</h3>
+                            <p class="text-gray-700 mb-6 font-medium">Has calmado a la familia con argumentos científicos sólidos. Eres un verdadero escudo contra la desinformación.</p>
+                            <button onclick="resetChat()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition shadow-md">
+                                <i class="fa-solid fa-rotate-right mr-2"></i> Reintentar Misión
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- MODAL DE IMAGEN Y EXPLICACIÓN -->
+    <div id="image-modal" class="fixed inset-0 z-[100] bg-black bg-opacity-90 hidden flex-col md:flex-row items-center justify-center p-4 md:p-8 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto flex flex-col md:flex-row relative">
+            <button onclick="closeModal()" class="absolute top-4 right-4 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-full w-10 h-10 flex items-center justify-center transition z-50 shadow-md">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            <div class="md:w-1/2 bg-gray-100 flex items-center justify-center p-4 rounded-t-xl md:rounded-l-xl md:rounded-tr-none">
+                <img id="modal-image" src="" alt="Mito ampliado" class="max-h-[40vh] md:max-h-[80vh] w-auto object-contain rounded-lg shadow-sm border border-gray-300">
+            </div>
+            <div class="md:w-1/2 p-6 md:p-10 flex flex-col justify-center">
+                <div class="flex items-center mb-4">
+                    <i class="fa-solid fa-magnifying-glass-chart text-3xl text-indigo-600 mr-3"></i>
+                    <h3 id="modal-title" class="text-2xl md:text-3xl font-extrabold text-indigo-800 border-b-4 border-green-400 pb-1"></h3>
+                </div>
+                <p id="modal-desc" class="text-gray-700 text-base md:text-lg leading-relaxed font-medium bg-indigo-50 p-4 rounded-lg border border-indigo-100"></p>
+                <button onclick="closeModal()" class="mt-8 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition shadow-md flex items-center justify-center text-lg">
+                    ¡Entendido! <i class="fa-solid fa-thumbs-up ml-2"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE ALERTA CIENTÍFICA (Para respuestas incorrectas en el chat) -->
+    <div id="alert-modal" class="fixed inset-0 z-[100] bg-black bg-opacity-80 hidden flex-col items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white p-6 rounded-xl shadow-2xl max-w-md w-full text-center border-t-8 border-red-500">
+            <i class="fa-solid fa-triangle-exclamation text-5xl text-red-500 mb-4"></i>
+            <h3 class="text-2xl font-bold text-red-700 mb-2">¡Pánico Aumentado!</h3>
+            <p id="alert-modal-text" class="text-gray-700 mb-6 text-sm font-medium"></p>
+            <button onclick="closeAlertModal()" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg transition shadow-md w-full">
+                Reintentar
+            </button>
+        </div>
+    </div>
+
+    <footer class="text-center p-6 text-gray-500 text-sm mt-8 border-t border-gray-200 bg-white">
+        <p><i class="fa-solid fa-flask text-indigo-500 text-lg mr-1"></i> Creado para educar, empoderar y recordarnos que <strong>la ciencia es nuestro mejor escudo contra el miedo.</strong> ¡Colombia fuerte y preparada!</p>
+    </footer>
+
+    <!-- LÓGICA JAVASCRIPT -->
+    <script>
+        // --- MODALES ---
+        function openImageModal(imgElement) {
+            const modal = document.getElementById('image-modal');
+            
+            // Cargar imagen
+            document.getElementById('modal-image').src = imgElement.src;
+            
+            // Extraer y cargar textos grandes desde los atributos data-* de la imagen
+            document.getElementById('modal-title').innerText = imgElement.getAttribute('data-title');
+            
+            // Al texto descriptivo le podemos dar formato bold para la pantalla gigante si tiene tags HTML fuertes. 
+            // Para mantenerlo seguro y simple usamos innerText o innerHTML con cuidado.
+            document.getElementById('modal-desc').innerHTML = imgElement.getAttribute('data-desc');
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.classList.add('overflow-hidden');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('image-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        function showAlertModal(text) {
+            document.getElementById('alert-modal-text').innerText = text;
+            const modal = document.getElementById('alert-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeAlertModal() {
+            const modal = document.getElementById('alert-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            // Al fallar, se reinicia el escenario actual
+            renderScenario(); 
+        }
+
+        // --- NAVEGACIÓN ---
+        function showSection(sectionId) {
+            const sections = ['intro', 'simulador', 'mitos', 'factchecker'];
+            sections.forEach(id => {
+                const el = document.getElementById(id);
+                el.classList.remove('fade-in', 'block');
+                el.classList.add('fade-out');
+                setTimeout(() => el.classList.add('hidden'), 500); 
+            });
+
+            setTimeout(() => {
+                const activeEl = document.getElementById(sectionId);
+                activeEl.classList.remove('hidden', 'fade-out');
+                activeEl.classList.add('fade-in', 'block');
+                if(sectionId === 'simulador') setTimeout(actualizarFisicaVisual, 100);
+                // Si entramos al chat, inicializamos el primer escenario si no se ha hecho
+                if(sectionId === 'factchecker' && currentScenario === 0 && document.getElementById('chat-messages').children.length === 0) {
+                    initChat();
+                }
+            }, 500);
+        }
+
+        // --- LÓGICA DEL CHAT "FACT-CHECKER" MÚLTIPLES NIVELES ---
+        const chatScenarios = [
+            {
+                sender: "Tía Maruja",
+                time: "10:42 AM",
+                message: "Mijo, sigo muy asustada por el temblor de ayer, no pude dormir. 😥 Además hoy está haciendo un calor insoportable, el cielo está rarísimo. Me pasaron un audio de un geólogo diciendo que ese clima es fijo porque viene uno más fuerte. ¿Qué hacemos?",
+                options: [
+                    { text: "Tía, empaca todo porque ese señor tiene razón, el calor siempre avisa.", correct: false, feedback: "Recuerda: El clima está en la atmósfera, las fallas a kilómetros bajo tierra. ¡No están conectados!" },
+                    { text: "Tía, entiendo el susto, todos lo sentimos. Pero tranquila, el clima ocurre en el cielo y los sismos a kilómetros bajo tierra. ¡A las rocas no les importa el sol! Es pura coincidencia y no va a temblar por eso.", correct: true }
+                ]
+            },
+            {
+                sender: "Tía Maruja",
+                time: "10:45 AM",
+                message: "¡Ay menos mal! Me tranquilizas un poco. Pero mira este otro mensaje que mandó tu prima al grupo de la familia. Dice que en Japón tienen unas máquinas nuevas y calcularon que mañana a las 3:00 PM exactas es el mega-sismo en Colombia por la acumulación de energía. ¡Que compartamos urgente! 😱",
+                options: [
+                    { text: "Tía, borra eso y dile a mi prima que no difunda pánico. Científicamente es imposible predecir el día y la hora exacta de un sismo, ni en Japón ni aquí. Solo podemos saber dónde tiembla más y estar preparados.", correct: true },
+                    { text: "Yo también leí eso tía, es mejor no salir de la casa mañana a las 3 por si las moscas.", correct: false, feedback: "Nadie puede predecir sismos con fecha y hora. Creer esto genera pánico innecesario en la familia." }
+                ]
+            },
+            {
+                sender: "Tía Maruja",
+                time: "10:48 AM",
+                message: "¡Qué alivio me das! Tienes toda la razón, hay mucha mentira rodando en internet y uno de viejo se asusta. Igual sigo nerviosa... si vuelve a temblar fuerte me voy a esconder al lado de la nevera haciendo el 'triángulo de la vida' por si se abre una grieta gigante en el suelo del barrio. 🙏",
+                options: [
+                    { text: "Tía, olvida lo de Facebook. La tierra no se traga a la gente como en las películas, y el 'triángulo' es un mito muy peligroso. La regla de oro internacional que salva vidas es: ¡Agacharse, Cubrirse (bajo una mesa fuerte) y Sujetarse!", correct: true },
+                    { text: "Sí tía, la nevera es súper fuerte. Y aléjate de la calle porque esas grietas son peligrosísimas y te tragan.", correct: false, feedback: "El triángulo de la vida es un mito desmentido y la tierra no se abre en abismos. La recomendación oficial es Agacharse, Cubrirse y Sujetarse." }
+                ]
+            }
+        ];
+
+        let currentScenario = 0;
+
+        function initChat() {
+            currentScenario = 0;
+            document.getElementById('success-message').classList.add('hidden');
+            renderScenario();
+        }
+
+        function renderScenario() {
+            const chatBox = document.getElementById('chat-messages');
+            chatBox.innerHTML = ''; // Limpia los mensajes
+            document.getElementById('chat-options').innerHTML = ''; // Limpia opciones
+            document.getElementById('btn-next-scenario').classList.add('hidden');
+            document.getElementById('typing-status').style.opacity = '1';
+            
+            // Simula el "Escribiendo..."
+            setTimeout(() => {
+                document.getElementById('typing-status').style.opacity = '0';
+                
+                const scenario = chatScenarios[currentScenario];
+                
+                // Agrega el mensaje de la tía (Burbuja izquierda)
+                const msgHTML = `
+                    <div class="flex flex-col mb-4 fade-in">
+                        <div class="bg-white p-3 rounded-tr-xl rounded-br-xl rounded-bl-xl shadow relative max-w-[85%] self-start border border-gray-100">
+                            <span class="absolute -top-3 -left-2 text-2xl">👵</span>
+                            <p class="text-sm text-gray-800 ml-2 font-medium">${scenario.message}</p>
+                            <p class="text-[10px] text-gray-400 text-right mt-1">${scenario.time}</p>
+                        </div>
+                    </div>
+                `;
+                chatBox.insertAdjacentHTML('beforeend', msgHTML);
+                
+                // Agrega las opciones de respuesta del estudiante
+                const optionsBox = document.getElementById('chat-options');
+                scenario.options.forEach((opt, index) => {
+                    const btn = document.createElement('button');
+                    btn.className = "w-full text-left bg-white hover:bg-gray-50 border border-gray-300 p-3 rounded-lg text-sm text-gray-700 transition shadow-sm hover:border-green-400 hover:shadow-md mb-2";
+                    btn.innerHTML = `<i class="fa-regular fa-comment-dots mr-2 text-green-600"></i> ${opt.text}`;
+                    btn.onclick = () => selectChatOption(index);
+                    optionsBox.appendChild(btn);
+                });
+                
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }, 1800); // 1.8 segundos de simulación de tipeo
+        }
+
+        function selectChatOption(index) {
+            const scenario = chatScenarios[currentScenario];
+            const selected = scenario.options[index];
+            
+            if(selected.correct) {
+                // Respuesta Correcta: Poner el mensaje verde de WhatsApp
+                const chatBox = document.getElementById('chat-messages');
+                const replyHTML = `
+                    <div class="flex flex-col mb-4 fade-in items-end">
+                        <div class="bg-[#dcf8c6] p-3 rounded-tl-xl rounded-bl-xl rounded-br-xl shadow relative max-w-[85%] border border-green-200">
+                            <p class="text-sm text-gray-800">${selected.text}</p>
+                            <p class="text-[10px] text-gray-500 text-right mt-1">Ahora mismo <i class="fa-solid fa-check-double text-blue-500"></i></p>
+                        </div>
+                    </div>
+                `;
+                chatBox.insertAdjacentHTML('beforeend', replyHTML);
+                chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll
+                
+                // Ocultar botones y felicitar
+                document.getElementById('chat-options').innerHTML = '<p class="text-sm text-green-800 font-bold text-center bg-green-200 py-2 rounded-lg border border-green-300"><i class="fa-solid fa-check-circle mr-2"></i> ¡Excelente respuesta! Has calmado el pánico con ciencia.</p>';
+                
+                // Mostrar botón para el siguiente nivel o finalizar
+                if(currentScenario < chatScenarios.length - 1) {
+                    document.getElementById('btn-next-scenario').classList.remove('hidden');
+                } else {
+                    // Si ya resolvió todos, mostrar la pantalla de éxito flotante
+                    setTimeout(() => {
+                        document.getElementById('success-message').classList.remove('hidden');
+                    }, 2000);
+                }
+            } else {
+                // Respuesta Incorrecta: Mostrar modal de alerta
+                showAlertModal(selected.feedback);
+            }
+        }
+
+        function nextChatScenario() {
+            currentScenario++;
+            renderScenario();
+        }
+
+        function resetChat() {
+            initChat();
+        }
+
+        // --- SIMULADOR DE FRICCIÓN (Mejorado con modos, suelo, profundidad y daño real) ---
+        let simMode = 'convergente';
+        let energia = 0;
+        let isSimulating = false;
+        let simInterval;
+        let autoModeInterval;
+
+        const slider = document.getElementById('slider-energia');
+        const energiaVal = document.getElementById('energia-val');
+        const placaIzq = document.getElementById('placa-izq');
+        const placaDer = document.getElementById('placa-der');
+        const simTitle = document.getElementById('sim-title');
+        const simDesc = document.getElementById('sim-desc');
+        const ondas = document.getElementById('ondas-sismicas');
+        const btnManual = document.getElementById('btn-manual');
+        const btnAuto = document.getElementById('btn-auto');
+        const magma = document.getElementById('magma-emergente');
+        const magDisplay = document.getElementById('mag-display');
+        const badge = document.getElementById('mag-badge');
+        
+        const casas = document.querySelectorAll('.house-container');
+        const edificios = document.querySelectorAll('.building-container');
+        const arboles = document.querySelectorAll('.tree-container');
+        const simSueloIzq = document.getElementById('suelo-izq');
+        const simSueloDer = document.getElementById('suelo-der');
+
+        function setSimMode(mode) {
+            simMode = mode;
+            document.getElementById('btn-conv').className = 'px-4 py-2 rounded-lg font-bold shadow transition border-2 ' + (mode === 'convergente' ? 'bg-blue-600 text-white hover:bg-blue-700 border-blue-800' : 'bg-gray-200 text-gray-700 hover:bg-gray-300 border-transparent');
+            document.getElementById('btn-div').className = 'px-4 py-2 rounded-lg font-bold shadow transition border-2 ' + (mode === 'divergente' ? 'bg-blue-600 text-white hover:bg-blue-700 border-blue-800' : 'bg-gray-200 text-gray-700 hover:bg-gray-300 border-transparent');
+            document.getElementById('btn-trans').className = 'px-4 py-2 rounded-lg font-bold shadow transition border-2 ' + (mode === 'transformante' ? 'bg-blue-600 text-white hover:bg-blue-700 border-blue-800' : 'bg-gray-200 text-gray-700 hover:bg-gray-300 border-transparent');
+
+            magma.style.opacity = '0';
+            magma.style.height = '0';
+
+            if (mode === 'convergente') {
+                simTitle.innerText = "Límite Convergente (Choque / Subducción)";
+                simDesc.innerText = "Las placas chocan. Una se hunde bajo la otra (como en Colombia). Mucha fricción, sismos muy fuertes y profundos.";
+                placaIzq.style.transform = `translateX(${energia / 4}px) translateY(${energia / 6}px)`;
+                placaDer.style.transform = `translateX(-${energia / 4}px)`;
+            } else if (mode === 'divergente') {
+                simTitle.innerText = "Límite Divergente (Separación)";
+                simDesc.innerText = "Las placas se separan. El magma sube y crea nueva corteza. Sismos más leves y superficiales.";
+                placaIzq.style.transform = `translateX(-${energia / 3}px)`;
+                placaDer.style.transform = `translateX(${energia / 3}px)`;
+                if(energia > 30) {
+                    magma.style.opacity = (energia/100).toString();
+                    magma.style.height = `${energia * 1.5}px`;
+                }
+            } else {
+                simTitle.innerText = "Límite Transformante (Roce Lateral)";
+                simDesc.innerText = "Las placas se frotan de lado (como la Falla de San Andrés). La fricción acumula energía masiva y sismos destructivos superficiales.";
+                placaIzq.style.transform = `translateY(${energia / 4}px)`;
+                placaDer.style.transform = `translateY(-${energia / 4}px)`;
+            }
+            actualizarFisicaVisual();
+        }
+
+        function actualizarVisualSuelo() {
+            const tipo = document.getElementById('sim-suelo').value;
+            let colorIzq, colorDer;
+            
+            if(tipo === 'roca') {
+                colorIzq = '#4b5563'; // gray-600
+                colorDer = '#374151'; // gray-700
+            } else if (tipo === 'mixto') {
+                colorIzq = '#16a34a'; // green-600
+                colorDer = '#059669'; // emerald-600
+            } else { // blando
+                colorIzq = '#a16207'; // yellow-700 (lodo)
+                colorDer = '#854d0e'; // yellow-800
+            }
+            
+            simSueloIzq.style.backgroundColor = colorIzq;
+            simSueloDer.style.backgroundColor = colorDer;
+        }
+
+        function actualizarVisualProfundidad() {
+            const prof = document.getElementById('sim-profundidad').value;
+            ondas.classList.remove('depth-superficial', 'depth-intermedio', 'depth-profundo');
+            ondas.classList.add(`depth-${prof}`);
+        }
+
+        slider.addEventListener('input', (e) => {
+            if(isSimulating) return;
+            energia = parseInt(e.target.value);
+            energiaVal.innerText = energia + '%';
+            
+            if(energia < 40) slider.style.accentColor = '#16a34a'; 
+            else if(energia < 80) slider.style.accentColor = '#f59e0b'; 
+            else slider.style.accentColor = '#dc2626'; 
+            
+            btnManual.disabled = energia < 20;
+            setSimMode(simMode); 
+            
+            if(energia > 80 && Math.random() > 0.95) {
+               ondas.style.opacity = '0.3';
+               ondas.style.transform = `translate(-50%, -50%) scale(0.5)`;
+               setTimeout(() => ondas.style.opacity = '0', 200);
+            }
+        });
+
+        function triggerManualQuake() {
+            if(energia < 20) return;
+            fireQuake(energia);
+        }
+
+        function toggleAutoMode() {
+            if(isSimulating) {
+                clearInterval(autoModeInterval);
+                isSimulating = false;
+                btnAuto.innerHTML = '<i class="fa-solid fa-dice mr-2 text-xl"></i> Simular Vida Real (Sorpresa)';
+                btnAuto.classList.replace('bg-orange-500', 'bg-indigo-500');
+                btnAuto.classList.replace('hover:bg-orange-600', 'hover:bg-indigo-600');
+                slider.disabled = false;
+                return;
+            }
+            
+            isSimulating = true;
+            energia = 0;
+            slider.disabled = true;
+            btnManual.disabled = true;
+            btnAuto.innerHTML = '<i class="fa-solid fa-stop mr-2 text-xl"></i> Detener Simulación';
+            btnAuto.classList.replace('bg-indigo-500', 'bg-orange-500');
+            btnAuto.classList.replace('hover:bg-indigo-600', 'hover:bg-orange-600');
+            
+            autoModeInterval = setInterval(() => {
+                energia += Math.random() * 5; 
+                if(energia > 100) energia = 100;
+                slider.value = energia;
+                slider.dispatchEvent(new Event('input'));
+                
+                const threshold = Math.random() * 100;
+                if(energia > 30 && energia > threshold + 20) {
+                    clearInterval(autoModeInterval);
+                    fireQuake(energia);
+                    setTimeout(() => { if(isSimulating) toggleAutoMode(); toggleAutoMode(); }, 3500);
+                }
+            }, 200);
+        }
+
+        function calcularMagnitudYDaño(energiaAcumulada) {
+            const suelo = document.getElementById('sim-suelo').value;
+            const prof = document.getElementById('sim-profundidad').value;
+            
+            let magnitud = 4.0 + (energiaAcumulada / 100) * 4.5;
+            let factorDaño = energiaAcumulada;
+            
+            if(prof === 'intermedio') factorDaño *= 0.6;
+            if(prof === 'profundo') factorDaño *= 0.3; 
+            
+            if(suelo === 'roca') factorDaño *= 0.5; 
+            if(suelo === 'blando') factorDaño *= 1.8; 
+            
+            return {
+                magnitud: magnitud.toFixed(1),
+                daño: factorDaño
+            };
+        }
+
+        function fireQuake(energiaSismo) {
+            isSimulating = true;
+            const stats = calcularMagnitudYDaño(energiaSismo);
+            const container = document.getElementById('sim-container');
+            
+            magDisplay.innerText = stats.magnitud;
+            badge.classList.remove('bg-gray-600', 'bg-red-600', 'bg-yellow-500', 'bg-green-600');
+            if(stats.magnitud >= 7.0) badge.classList.add('bg-red-600');
+            else if(stats.magnitud >= 5.5) badge.classList.add('bg-yellow-500');
+            else badge.classList.add('bg-green-600');
+
+            document.getElementById('sim-mensaje').innerHTML = `<span class="text-red-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> ¡SISMO MAGNITUD ${stats.magnitud}!</span> Liberando energía...`;
+            
+            ondas.style.opacity = '1';
+            ondas.style.transform = `translate(-50%, -50%) scale(${energiaSismo / 20})`;
+            
+            let shakeClass = 'shake-light';
+            if(stats.daño > 120) shakeClass = 'shake-devastating';
+            else if(stats.daño > 60) shakeClass = 'shake-heavy';
+            else if(stats.daño > 30) shakeClass = 'shake-animation';
+            
+            container.classList.add(shakeClass);
+            
+            aplicarFisicaEstructuras(stats.daño);
+
+            setTimeout(() => {
+                energia = 0;
+                slider.value = 0;
+                energiaVal.innerText = '0%';
+                slider.style.accentColor = '#e5e7eb';
+                setSimMode(simMode);
+                ondas.style.opacity = '0';
+                ondas.style.transform = 'translate(-50%, -50%) scale(1)';
+                container.classList.remove('shake-animation', 'shake-light', 'shake-heavy', 'shake-devastating');
+                document.getElementById('sim-mensaje').innerText = "Mueve el deslizador naranja para empezar a acumular estrés en las rocas...";
+                isSimulating = false;
+                btnManual.disabled = true;
+                
+                setTimeout(()=> {
+                    badge.className = 'absolute top-0 right-0 bg-gray-600 text-white font-mono px-4 py-2 rounded-bl-xl font-bold text-lg shadow-md z-10 flex items-center transition-colors duration-300';
+                    magDisplay.innerText = '0.0';
+                }, 2000);
+
+            }, 2500);
+        }
+
+        function aplicarFisicaEstructuras(nivelDaño) {
+            edificios.forEach(ed => ed.classList.add('quake-sway'));
+            
+            setTimeout(() => {
+                edificios.forEach(ed => ed.classList.remove('quake-sway'));
+                
+                if (nivelDaño > 100) {
+                    casas.forEach(c => { if(Math.random() > 0.3) c.classList.add('house-ruin')});
+                    edificios.forEach(e => { if(Math.random() > 0.4) e.classList.add('building-ruin')});
+                    arboles.forEach(a => { if(Math.random() > 0.7) a.classList.add('tree-ruin')});
+                } else if (nivelDaño > 60) {
+                    casas.forEach(c => { if(Math.random() > 0.7) c.classList.add('house-ruin')});
+                    edificios.forEach(e => { if(Math.random() > 0.8) e.classList.add('building-ruin')});
+                }
+            }, 1500);
+        }
+
+        function actualizarFisicaVisual() {
+            if(energia < 10 && !isSimulating) {
+                 casas.forEach(c => c.classList.remove('house-ruin'));
+                 edificios.forEach(e => e.classList.remove('building-ruin'));
+                 arboles.forEach(a => a.classList.remove('tree-ruin'));
+            }
+        }
+
+        // Initialize Simulador Visuals
+        actualizarVisualSuelo();
+        actualizarVisualProfundidad();
+    </script>
+</body>
+</html>
